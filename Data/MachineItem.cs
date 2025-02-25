@@ -2,7 +2,7 @@
 
 namespace site_machine_tracker.Data
 {
-    public class MachineListItem
+    public class MachineItem
     {
         public required string Name { get; set; }
         public required MachineType MachineType { get; set; }

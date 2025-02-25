@@ -7,5 +7,6 @@
         User? GetUser(int id);
         IEnumerable<Machine> ListMachines(int siteId);
         Machine? UpdateMachineLocation(int id, Location newLocation);
+        IEnumerable<User> AllUsers { get; }
     }
 }

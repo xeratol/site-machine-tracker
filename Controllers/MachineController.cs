@@ -11,8 +11,22 @@ namespace site_machine_tracker.Controllers
         IRepository repository)
         : ControllerBase
     {
+        [HttpGet("Users")]
+        public ActionResult<IEnumerable<UserItem>> GetAllUsers()
+        {
+            return Ok(repository.AllUsers.Select(u => new UserItem() { Id = u.Id, Name = u.Name }));
+        }
+
+        [HttpGet("Types")]
+        public ActionResult<IEnumerable<MachineTypeItem>> GetMachineTypes()
+        {
+            return Ok(Enum.GetValues(typeof(MachineType))
+                .Cast<MachineType>()
+                .Select(enumValue => new MachineTypeItem() { EnumValue = enumValue, Name = enumValue.ToString() }));
+        }
+
         [HttpGet("{userId:int}")]
-        public ActionResult<IEnumerable<MachineListItem>> GetMachines(int userId, string? machineName = null, MachineType? machineType = null)
+        public ActionResult<IEnumerable<MachineItem>> GetMachines(int userId, string? machineName = null, MachineType? machineType = null)
         {
             var user = repository.GetUser(userId);
             if (user is null)
@@ -29,7 +43,7 @@ namespace site_machine_tracker.Controllers
                         (machineName is null || m.Name.Contains(machineName, StringComparison.CurrentCultureIgnoreCase)) &&
                         (machineType is null || m.MachineType == machineType);
                 })
-                .Select(m => new MachineListItem()
+                .Select(m => new MachineItem()
                 {
                     Name = m.Name,
                     MachineType = m.MachineType,

@@ -20,8 +20,8 @@ namespace site_machine_tracker.Data.Database
         private int _lastMachineId = 0;
         private int _lastSiteId = 0;
 
-#if DEBUG
         public IEnumerable<User> AllUsers => Users;
+#if DEBUG
         public IEnumerable<Machine> AllMachines => Machines;
         public IEnumerable<Site> AllSites => Sites;
 #endif

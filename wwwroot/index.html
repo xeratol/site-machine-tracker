@@ -3,8 +3,116 @@
 <head>
     <meta charset="utf-8" />
     <title>Construction Site Tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <style>
+        #map
+        {
+            height: 600px;
+            width: 800px;
+        }
+    </style>
 </head>
 <body>
+    <select id="users"></select>
+    <input id="machineNameFilter" />
+    <select id="machineTypeFilter">
+        <option value="">Any</option>
+    </select>
+    <div id="map"></div>
+    <script>
+        var userDropdown = document.getElementById("users");
+        var machineNameFilter = document.getElementById("machineNameFilter");
+        var machineTypeFilterDropdown = document.getElementById("machineTypeFilter");
 
+        userDropdown.onchange = function () {
+            let selectedUserId = userDropdown.value;
+            // TODO consider filters
+            fetch('api/Machine/' + selectedUserId)
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(`Failed to fetch. Reason: ${text}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(data);
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        };
+
+        // TODO fetch machines when filters change
+
+        function populateUsers(userList) {
+            userList.forEach(user => {
+                let opt = document.createElement("option");
+                opt.value = user.id;
+                opt.innerHTML = user.name;
+
+                userDropdown.append(opt);
+            });
+
+            userDropdown.dispatchEvent(new Event('change'));
+        }
+
+        function populateMachineTypeFilterDropdown(typeList) {
+            typeList.forEach(type => {
+                let opt = document.createElement("option");
+                opt.value = type.enumValue;
+                opt.innerHTML = type.name;
+
+                machineTypeFilterDropdown.append(opt);
+            })
+        }
+
+        const map = L.map('map').setView([51.505, -0.09], 13);
+
+        const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        // TODO pin fetched machines on map
+
+        fetch('api/Machine/Users')
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`Failed to fetch. Reason: ${text}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Populating Users")
+                populateUsers(data);
+            })
+            .catch(error => {
+                console.error(error);
+            });
+
+        fetch('api/Machine/Types')
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`Failed to fetch. Reason: ${text}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Populating Machine Type Filter")
+                populateMachineTypeFilterDropdown(data);
+            })
+            .catch(error => {
+                console.error(error);
+            });
+
+    </script>
 </body>
 </html>
