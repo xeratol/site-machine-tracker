@@ -12,24 +12,145 @@
             height: 600px;
             width: 800px;
         }
+        .warn { color: orange; }
+        .err { color: red; }
     </style>
 </head>
 <body>
-    <select id="users"></select>
-    <input id="machineNameFilter" />
-    <select id="machineTypeFilter">
-        <option value="">Any</option>
-    </select>
+    <p>
+        <label for="users">User</label>
+        <select id="users">
+            <option value="">-</option>
+        </select>
+        <label for="siteName">Site Name: </label>
+        <span id="siteName">-</span>
+    </p>
+    <p>
+        <label for="machineNameFilter">Machine Name</label>
+        <input id="machineNameFilter" />
+    </p>
+    <p>
+        <label for="machineTypeFilter">Machine Type</label>
+        <select id="machineTypeFilter">
+            <option value="">Any</option>
+        </select>
+    </p>
+    <p id="status"></p>
     <div id="map"></div>
     <script>
-        var userDropdown = document.getElementById("users");
-        var machineNameFilter = document.getElementById("machineNameFilter");
-        var machineTypeFilterDropdown = document.getElementById("machineTypeFilter");
+        // Map Elements
+        const map = L.map('map').setView([51.505, -0.09], 13);
+        const markerGroup = L.featureGroup().addTo(map);
 
+        const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        // Machine Filter
+        const userDropdown = document.getElementById("users");
+        const machineNameFilter = document.getElementById("machineNameFilter");
+        const machineTypeFilterDropdown = document.getElementById("machineTypeFilter");
+        const statusField = document.getElementById("status");
+        const siteNameField = document.getElementById("siteName");
+
+        // Event Handlers
         userDropdown.onchange = function () {
-            let selectedUserId = userDropdown.value;
-            // TODO consider filters
-            fetch('api/Machine/' + selectedUserId)
+            updateSiteName();
+            loadMachines();
+        };
+        machineTypeFilterDropdown.onchange = function () { loadMachines(); };
+        machineNameFilter.addEventListener('input', (event) => { loadMachines(); });
+
+        // Other variables
+        var userSiteMap = {};
+
+        function isNullOrWhitespace(str) {
+            return str === null || str === undefined || str.trim() === '';
+        }
+
+        function setWarningStatus(text) {
+            statusField.classList.remove(...statusField.classList);
+            statusField.classList.add("warn");
+            statusField.innerHTML = text;
+            console.warn(text);
+        }
+
+        function setErrorStatus(text) {
+            statusField.classList.remove(...statusField.classList);
+            statusField.classList.add("err");
+            statusField.innerHTML = text;
+            console.error(text);
+        }
+
+        function clearStatus() {
+            statusField.classList.remove(...statusField.classList);
+            statusField.innerHTML = "";
+        }
+
+        function populateUsers(userList) {
+            userList.forEach(user => {
+                const opt = document.createElement("option");
+                opt.value = user.id;
+                opt.innerHTML = user.name;
+                if (!isNullOrWhitespace(user.siteName))
+                    userSiteMap[user.id] = user.siteName;
+
+                userDropdown.append(opt);
+            });
+        }
+
+        function populateMachineTypeFilterDropdown(typeList) {
+            typeList.forEach(type => {
+                const opt = document.createElement("option");
+                opt.value = type.enumValue;
+                opt.innerHTML = type.name;
+
+                machineTypeFilterDropdown.append(opt);
+            })
+        }
+
+        function pinMachinesToMap(machineItemList) {
+            if (machineItemList.length == 0) {
+                setWarningStatus("No machines found")
+                return;
+            }
+            machineItemList.forEach(machine => {
+                let marker = L.marker([machine.location.latitude, machine.location.longitude]).addTo(markerGroup);
+                marker.bindPopup(machine.name);
+            });
+            map.fitBounds(markerGroup.getBounds());
+        }
+
+        function clearMachineMarkers() {
+            markerGroup.clearLayers();
+        }
+
+        function updateSiteName() {
+            if (!userSiteMap.hasOwnProperty(userDropdown.value)) {
+                siteNameField.innerHTML = "";
+                return;
+            }
+
+            siteNameField.innerHTML = userSiteMap[userDropdown.value];
+        }
+
+        function loadMachines() {
+            clearMachineMarkers();
+            clearStatus();
+
+            if (isNullOrWhitespace(userDropdown.value)) {
+                setWarningStatus("No user selected");
+                return;
+            }
+
+            const url = new URL(`${window.location.origin}/api/Machine/${userDropdown.value}`);
+            if (!isNullOrWhitespace(machineNameFilter.value))
+                url.searchParams.append("machineName", machineNameFilter.value);
+            if (!isNullOrWhitespace(machineTypeFilterDropdown.value))
+                url.searchParams.append("machineType", machineTypeFilterDropdown.value);
+
+            fetch(url.toString())
                 .then(response => {
                     if (!response.ok) {
                         return response.text().then(text => {
@@ -39,80 +160,56 @@
                     return response.json();
                 })
                 .then(data => {
-                    console.log(data);
+                    pinMachinesToMap(data);
                 })
                 .catch(error => {
-                    console.error(error);
+                    setErrorStatus(error);
                 });
-        };
-
-        // TODO fetch machines when filters change
-
-        function populateUsers(userList) {
-            userList.forEach(user => {
-                let opt = document.createElement("option");
-                opt.value = user.id;
-                opt.innerHTML = user.name;
-
-                userDropdown.append(opt);
-            });
-
-            userDropdown.dispatchEvent(new Event('change'));
         }
 
-        function populateMachineTypeFilterDropdown(typeList) {
-            typeList.forEach(type => {
-                let opt = document.createElement("option");
-                opt.value = type.enumValue;
-                opt.innerHTML = type.name;
-
-                machineTypeFilterDropdown.append(opt);
-            })
+        // Start-up methods
+        function loadUsers() {
+            fetch('api/Machine/Users')
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(`Failed to fetch. Reason: ${text}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    populateUsers(data);
+                })
+                .catch(error => {
+                    setErrorStatus(error);
+                });
         }
 
-        const map = L.map('map').setView([51.505, -0.09], 13);
+        function loadMachineTypes() {
+            fetch('api/Machine/Types')
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(`Failed to fetch. Reason: ${text}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    populateMachineTypeFilterDropdown(data);
+                })
+                .catch(error => {
+                    setErrorStatus(error);
+                });
+        }
 
-        const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
+        function start() {
+            loadUsers();
+            loadMachineTypes();
+        }
 
-        // TODO pin fetched machines on map
-
-        fetch('api/Machine/Users')
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => {
-                        throw new Error(`Failed to fetch. Reason: ${text}`);
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log("Populating Users")
-                populateUsers(data);
-            })
-            .catch(error => {
-                console.error(error);
-            });
-
-        fetch('api/Machine/Types')
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => {
-                        throw new Error(`Failed to fetch. Reason: ${text}`);
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log("Populating Machine Type Filter")
-                populateMachineTypeFilterDropdown(data);
-            })
-            .catch(error => {
-                console.error(error);
-            });
-
+        start();
     </script>
 </body>
 </html>

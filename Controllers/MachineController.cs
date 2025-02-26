@@ -14,7 +14,8 @@ namespace site_machine_tracker.Controllers
         [HttpGet("Users")]
         public ActionResult<IEnumerable<UserItem>> GetAllUsers()
         {
-            return Ok(repository.AllUsers.Select(u => new UserItem() { Id = u.Id, Name = u.Name }));
+            // TODO improve getting site name
+            return Ok(repository.AllUsers.Select(u => new UserItem() { Id = u.Id, Name = u.Name, SiteName = repository.GetSite(u.SiteId)?.Name }));
         }
 
         [HttpGet("Types")]
@@ -47,7 +48,6 @@ namespace site_machine_tracker.Controllers
                 {
                     Name = m.Name,
                     MachineType = m.MachineType,
-                    SiteName = site.Name,
                     Location = m.Location
                 });
             return Ok(machines);
