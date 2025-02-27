@@ -12,6 +12,7 @@ namespace site_machine_tracker.Controllers
         : ControllerBase
     {
         [HttpGet("Users")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<UserItem>> GetAllUsers()
         {
             // TODO improve getting site name
@@ -19,6 +20,7 @@ namespace site_machine_tracker.Controllers
         }
 
         [HttpGet("Types")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<MachineTypeItem>> GetMachineTypes()
         {
             return Ok(Enum.GetValues(typeof(MachineType))
@@ -27,6 +29,8 @@ namespace site_machine_tracker.Controllers
         }
 
         [HttpGet("{userId:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<IEnumerable<MachineItem>> GetMachines(int userId, string? machineName = null, MachineType? machineType = null)
         {
             var user = repository.GetUser(userId);
@@ -54,6 +58,8 @@ namespace site_machine_tracker.Controllers
         }
 
         [HttpPost("{machineId:int}/{latitude:double}/{longitude:double}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult UpdateMachineLocation(int machineId, double latitude, double longitude)
         {
             if (repository.GetMachine(machineId) is null)

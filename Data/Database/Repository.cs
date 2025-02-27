@@ -120,17 +120,17 @@ namespace site_machine_tracker.Data.Database
             Debug.Assert(userAlice != null);
             Debug.Assert(userCarl != null);
 
-            AddMachine("Björn", MachineType.Excavator, siteSthlm.Id, new Location() { Latitude = 59.3278264, Longitude = 18.052583 });
-            AddMachine("Erik", MachineType.Dozer, siteSthlm.Id, new Location() { Latitude = 59.32473932, Longitude = 18.0644845963 });
-            AddMachine("Astrid", MachineType.Excavator, siteSthlm.Id, new Location() { Latitude = 59.3280451819, Longitude = 18.0913925171 });
-            AddMachine("Ragnar", MachineType.Dozer, siteSthlm.Id, new Location() { Latitude = 59.3200098459, Longitude = 18.0507087708 });
-            AddMachine("Ulf", MachineType.Excavator, siteSthlm.Id, new Location() { Latitude = 59.293591519, Longitude = 18.0834960938 });
+            AddMachine("Björn", MachineType.Excavator, siteSthlm.Id, new () { Latitude = 59.3278264, Longitude = 18.052583 });
+            AddMachine("Erik", MachineType.Dozer, siteSthlm.Id, new () { Latitude = 59.32473932, Longitude = 18.0644845963 });
+            AddMachine("Astrid", MachineType.Excavator, siteSthlm.Id, new () { Latitude = 59.3280451819, Longitude = 18.0913925171 });
+            AddMachine("Ragnar", MachineType.Dozer, siteSthlm.Id, new () { Latitude = 59.3200098459, Longitude = 18.0507087708 });
+            AddMachine("Ulf", MachineType.Excavator, siteSthlm.Id, new () { Latitude = 59.293591519, Longitude = 18.0834960938 });
 
-            AddMachine("Sigrid", MachineType.Dozer, siteGbg.Id, new Location() { Latitude = 57.682862602, Longitude = 11.9503355026 });
-            AddMachine("Ivar", MachineType.Excavator, siteGbg.Id, new Location() { Latitude = 57.6984144583, Longitude = 11.971578598 });
-            AddMachine("Harald", MachineType.Dozer, siteGbg.Id, new Location() { Latitude = 57.6897447777, Longitude = 11.9974136353 });
-            AddMachine("Freya", MachineType.Excavator, siteGbg.Id, new Location() { Latitude = 57.6895153929, Longitude = 11.9493484497 });
-            AddMachine("Thorsten", MachineType.Dozer, siteGbg.Id, new Location() { Latitude = 57.7106585671, Longitude = 11.9629096985 });
+            AddMachine("Sigrid", MachineType.Dozer, siteGbg.Id, new () { Latitude = 57.682862602, Longitude = 11.9503355026 });
+            AddMachine("Ivar", MachineType.Excavator, siteGbg.Id, new () { Latitude = 57.6984144583, Longitude = 11.971578598 });
+            AddMachine("Harald", MachineType.Dozer, siteGbg.Id, new () { Latitude = 57.6897447777, Longitude = 11.9974136353 });
+            AddMachine("Freya", MachineType.Excavator, siteGbg.Id, new () { Latitude = 57.6895153929, Longitude = 11.9493484497 });
+            AddMachine("Thorsten", MachineType.Dozer, siteGbg.Id, new () { Latitude = 57.7106585671, Longitude = 11.9629096985 });
         }
 
         private void InitializeInvalidData()
